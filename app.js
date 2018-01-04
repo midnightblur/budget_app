@@ -44,7 +44,15 @@ var theView = (function() {
  * The controller
  */
 var theController = (function(model, view) {
-    var DOMstrings = theView.getDOMstrings();
+    var setupEventListeners = function() {
+        var DOMstrings = theView.getDOMstrings();
+        document.querySelector(DOMstrings.inputBtn).addEventListener('click', ctrlAddItem);
+        document.addEventListener('keypress', function(event) {
+            if (event.keyCode === 13 || event.which === 13) { // If pressed key is the Return key
+                ctrlAddItem();
+            }
+        });
+    };
 
     /**
      * The function to read the input from UI and handle it properly
@@ -63,11 +71,12 @@ var theController = (function(model, view) {
         // Display the budget
     };
 
-    document.querySelector(DOMstrings.inputBtn).addEventListener('click', ctrlAddItem);
-
-    document.addEventListener('keypress', function(event) {
-        if (event.keyCode === 13 || event.which === 13) { // If pressed key is the Return key
-            ctrlAddItem();
-        }
-    });
+    return {
+        init: function() {
+            console.log('Application has started!!!');
+            setupEventListeners();
+        },
+    };
 }(theModel, theView));
+
+theController.init();
