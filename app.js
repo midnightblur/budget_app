@@ -2,6 +2,30 @@
  * The model
  */
 var theModel = (function() {
+    // Define prototype objects
+    var Expense = {
+        id: -1,
+        description: 'expense',
+        amount: 0,
+    };
+
+    var Income = {
+        id: -1,
+        description: 'income',
+        amount: 0,
+    };
+
+    var data = {
+        totalExpense: 0,
+        transactionsHistory: {
+            income: [],
+            expense: [],
+        },
+        totals: {
+            income: 0,
+            expense: 0,
+        },
+    };
 
     // Expose public API
     return {
