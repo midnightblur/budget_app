@@ -146,6 +146,22 @@ var theView = (function() {
         expensePercentageLabel: '.item__percentage',
     };
 
+    var formatNumber = function(number, type) {
+        number = Math.abs(number);
+        number = number.toFixed(2); // number is a string now
+
+        var numSplit = number.split('.');
+        var int = numSplit[0];
+        if (int.length > 3) {
+             int = int.substr(0, int.length - 3) + ',' + int.substr(int.length - 3, int.length);
+        }
+        var dec = numSplit[1];
+
+        var sign = (type === 'exp') ? '-' : '+';
+
+        return (sign + ' ' + int + '.' + dec);
+    };
+
     return {
         getInput: function() {
             return {
@@ -174,11 +190,11 @@ var theView = (function() {
             if (type === 'inc') {
                 container = DOMstrings.incomeContainer;
 
-                html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">+ %amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             } else if (type === 'exp') {
                 container = DOMstrings.expenseContainer;
 
-                html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">- %amount%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%amount%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             } else {
                 throw 'Invalid transaction type';
             }
@@ -186,7 +202,7 @@ var theView = (function() {
             // Replace the placeholder text with actual data
             html = html.replace('%id%', transaction.id);
             html = html.replace('%description%', transaction.description);
-            html = html.replace('%amount%', transaction.amount);
+            html = html.replace('%amount%', formatNumber(transaction.amount, type));
 
             // Insert the HTML into the DOM
             document.querySelector(container).insertAdjacentHTML('beforeend', html);
@@ -212,9 +228,9 @@ var theView = (function() {
         },
 
         displayBudget: function(data) {
-            document.querySelector(DOMstrings.budgetLabel).textContent = (data.budget > 0) ? '+ ' + data.budget : data.budget;
-            document.querySelector(DOMstrings.incomeLabel).textContent = data.totalIncome;
-            document.querySelector(DOMstrings.expenseLabel).textContent = data.totalExpense;
+            document.querySelector(DOMstrings.budgetLabel).textContent = (data.budget > 0) ? formatNumber(data.budget, 'inc') : formatNumber(data.budget, 'exp');
+            document.querySelector(DOMstrings.incomeLabel).textContent = formatNumber(data.totalIncome, 'inc');
+            document.querySelector(DOMstrings.expenseLabel).textContent = formatNumber(data.totalExpense, 'exp');
             if (data.percentage > 0) {
                 document.querySelector(DOMstrings.percentageLabel).textContent = data.percentage + '%';
             } else {
@@ -224,7 +240,7 @@ var theView = (function() {
 
         getDOMstrings: function() {
             return DOMstrings;
-        }
+        },
     };
 }());
 
