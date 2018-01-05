@@ -63,6 +63,15 @@ var theModel = (function() {
             return transaction;
         },
 
+        deleteTransaction: function(type, id) {
+            for (var i = 0; i < data.transactionsHistory[type].length; i++) {
+                if (data.transactionsHistory[type][i].id === id) {
+                    data.transactionsHistory[type].splice(i, 1);
+                    return;
+                }
+            }
+        },
+
         calculateBudget: function() {
             // Calculate total incomes & expenses
             calculateTotals('inc');
@@ -105,6 +114,7 @@ var theView = (function() {
         incomeLabel: '.budget__income--value',
         expenseLabel: '.budget__expenses--value',
         percentageLabel: '.budget__expenses--percentage',
+        container: '.container',
     };
 
     return {
@@ -135,11 +145,11 @@ var theView = (function() {
             if (type === 'inc') {
                 container = DOMstrings.incomeContainer;
 
-                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">+ %amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="inc-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">+ %amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             } else if (type === 'exp') {
                 container = DOMstrings.expenseContainer;
 
-                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">- %amount%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+                html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">- %amount%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             } else {
                 throw 'Invalid transaction type';
             }
@@ -153,8 +163,13 @@ var theView = (function() {
             document.querySelector(container).insertAdjacentHTML('beforeend', html);
         },
 
+        deleteListTransaction: function(type, id) {
+            var element = document.getElementById(type + '-' + id);
+            element.parentNode.removeChild(element);
+        },
+
         displayBudget: function(data) {
-            document.querySelector(DOMstrings.budgetLabel).textContent = data.budget;
+            document.querySelector(DOMstrings.budgetLabel).textContent = (data.budget > 0) ? '+ ' + data.budget : data.budget;
             document.querySelector(DOMstrings.incomeLabel).textContent = data.totalIncome;
             document.querySelector(DOMstrings.expenseLabel).textContent = data.totalExpense;
             if (data.percentage > 0) {
@@ -182,6 +197,9 @@ var theController = (function(model, view) {
                 ctrlAddItem();
             }
         });
+
+        // Setup event delegation for deleting transactions
+        document.querySelector(DOMstrings.container).addEventListener('click', ctrlDeleteItem);
     };
 
     var updateBudget = function() {
@@ -213,6 +231,30 @@ var theController = (function(model, view) {
             theView.addListTransaction(newTransaction, input.type);
 
             // Calculate & Update the budget
+            updateBudget();
+        }
+    };
+
+    /**
+     * The function determine the HTML item firing the event and remove it from the UI and delete the transaction from the model
+     * @param {*} event 
+     */
+    var ctrlDeleteItem = function(event) {
+        // Getting deleted transaction info
+        var transactionID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+
+        if (transactionID) {
+            var transactionInfo = transactionID.split('-');
+            var type = transactionInfo[0];
+            var id = parseInt(transactionInfo[1]);
+
+            // Delete the transaction from data model
+            theModel.deleteTransaction(type, id);
+
+            // Delete the item from the UI
+            theView.deleteListTransaction(type, id);
+
+            // Update and show the budget
             updateBudget();
         }
     };
