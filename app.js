@@ -7,6 +7,14 @@ var theModel = (function() {
         id: -1,
         description: 'expense',
         amount: 0,
+        percentage: -1,
+        calcPercentage: function() {
+            this.percentage = (data.totals.inc > 0) ? Math.round((this.amount / data.totals.inc) * 100) : -1;
+        },
+
+        getPercentage: function() {
+            return this.percentage;
+        }
     };
 
     var Income = {
@@ -27,6 +35,8 @@ var theModel = (function() {
             exp: 0,
         },
     };
+
+    console.log(Expense.prototype);
 
     var calculateTotals = function(type) {
         var sum = 0;
@@ -88,6 +98,19 @@ var theModel = (function() {
             }
         },
 
+        calculatePercentages: function() {
+            data.transactionsHistory.exp.forEach(function(current) {
+                current.calcPercentage();
+            });
+        },
+
+        getPercentages: function() {
+            var allPercentages = data.transactionsHistory.exp.map(function(current) {
+                return current.getPercentage();
+            });
+            return allPercentages;
+        },
+
         getBudget: function() {
             return {
                 budget: data.budget,
@@ -96,6 +119,10 @@ var theModel = (function() {
                 percentage: data.percentage,
             };
         },
+
+        publicExpose: function() {
+            return data;
+        }
     };
 }());
 
@@ -115,6 +142,8 @@ var theView = (function() {
         expenseLabel: '.budget__expenses--value',
         percentageLabel: '.budget__expenses--percentage',
         container: '.container',
+        monthLabel: 'budget__title--month',
+        expensePercentageLabel: '.item__percentage',
     };
 
     return {
@@ -168,6 +197,20 @@ var theView = (function() {
             element.parentNode.removeChild(element);
         },
 
+        displayPercentages: function(percentages) {
+            var fields = document.querySelectorAll(DOMstrings.expensePercentageLabel);
+            
+            var nodeListForEach = function(nodeList, fn) {
+                for (var i = 0; i < nodeList.length; i++) {
+                    fn(nodeList[i], i);
+                }
+            }
+
+            nodeListForEach(fields, function(current, index) {
+                current.textContent = (percentages[index] === 0) ? '---' : percentages[index] + '%';
+            });
+        },
+
         displayBudget: function(data) {
             document.querySelector(DOMstrings.budgetLabel).textContent = (data.budget > 0) ? '+ ' + data.budget : data.budget;
             document.querySelector(DOMstrings.incomeLabel).textContent = data.totalIncome;
@@ -202,6 +245,17 @@ var theController = (function(model, view) {
         document.querySelector(DOMstrings.container).addEventListener('click', ctrlDeleteItem);
     };
 
+    var updatePercentages = function() {
+        // Calculate the percentages
+        theModel.calculatePercentages();
+
+        // Read the percentages from the model
+        var percentages = theModel.getPercentages();
+
+        // Update to the UI
+        theView.displayPercentages(percentages);
+    };
+
     var updateBudget = function() {
         // Calculate the budget
         theModel.calculateBudget();
@@ -232,6 +286,9 @@ var theController = (function(model, view) {
 
             // Calculate & Update the budget
             updateBudget();
+
+            // Calculate & update the percentages
+            updatePercentages();
         }
     };
 
@@ -256,6 +313,9 @@ var theController = (function(model, view) {
 
             // Update and show the budget
             updateBudget();
+
+            // Calculate & update the percentages
+            updatePercentages();
         }
     };
 
