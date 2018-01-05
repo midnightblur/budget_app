@@ -73,7 +73,7 @@ var theView = (function() {
             return {
                 type: document.querySelector(DOMstrings.inputType).value, // Value is either 'inc' or 'exp'
                 description: document.querySelector(DOMstrings.inputDesc).value,
-                amount: document.querySelector(DOMstrings.intputValue).value,
+                amount: parseFloat(document.querySelector(DOMstrings.intputValue).value),
             };
         },
 
@@ -134,6 +134,14 @@ var theController = (function(model, view) {
         });
     };
 
+    var updateBudget = function() {
+        // Calculate the budget
+
+        // Return the budget
+
+        // Display the budget
+    };
+
     /**
      * The function to read the input from UI and handle it properly
      */
@@ -141,18 +149,19 @@ var theController = (function(model, view) {
         // Get the input data
         var input = theView.getInput();
 
-        // Clear all input fields
-        theView.clearInput();
+        if (input.description !== '' && !isNaN(input.amount) && input.amount > 0) {
+            // Clear all input fields
+            theView.clearInput();
 
-        // Add the item to the model
-        var newTransaction = theModel.addTransaction(input.type, input.description, input.amount);
+            // Add the item to the model
+            var newTransaction = theModel.addTransaction(input.type, input.description, input.amount);
 
-        // Add a new item to the UI
-        theView.addListTransaction(newTransaction, input.type);
+            // Add a new item to the UI
+            theView.addListTransaction(newTransaction, input.type);
 
-        // Calculate the budget
-
-        // Display the budget
+            // Calculate & Update the budget
+            updateBudget();
+        }
     };
 
     return {
