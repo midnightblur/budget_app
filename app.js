@@ -18,18 +18,40 @@ var theModel = (function() {
     var data = {
         totalExpense: 0,
         transactionsHistory: {
-            income: [],
-            expense: [],
+            inc: [],
+            exp: [],
         },
         totals: {
-            income: 0,
-            expense: 0,
+            inc: 0,
+            exp: 0,
         },
     };
 
     // Expose public API
     return {
+        addTransaction: function(type, desc, amount) {
+            // Create the transaction
+            var transaction;
+            if (type === 'inc') {
+                transaction = Object.create(Income);
+            } else if (type === 'exp') {
+                transaction = Object.create(Expense);
+            } else {
+                throw 'Invalid transaction type';
+            }
+            if (data.transactionsHistory[type].length === 0) {
+                transaction.id = 0;
+            } else {
+                transaction.id = data.transactionsHistory[type][data.transactionsHistory[type].length - 1].id + 1; // the latest transaction's id + 1
+            }
+            transaction.description = desc;
+            transaction.amount = amount;
 
+            // Record the transaction
+            data.transactionsHistory[type].push(transaction);
+
+            return transaction;
+        },
     };
 }());
 
@@ -42,6 +64,8 @@ var theView = (function() {
         inputDesc: '.add__description',
         intputValue: '.add__value',
         inputBtn: '.add__btn',
+        incomeContainer: '.income__list',
+        expenseContainer: '.expenses__list',
     };
 
     return {
@@ -56,6 +80,31 @@ var theView = (function() {
         clearInput: function() {
             document.querySelector(DOMstrings.inputDesc).value = '';
             document.querySelector(DOMstrings.intputValue).value = '';
+        },
+
+        addListTransaction: function(transaction, type) {
+            // Create HTML string with placeholder text
+            var html, container;
+            
+            if (type === 'inc') {
+                container = DOMstrings.incomeContainer;
+
+                html = '<div class="item clearfix" id="income-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">+ %amount%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+            } else if (type === 'exp') {
+                container = DOMstrings.expenseContainer;
+
+                html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">- %amount%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+            } else {
+                throw 'Invalid transaction type';
+            }
+
+            // Replace the placeholder text with actual data
+            html = html.replace('%id%', transaction.id);
+            html = html.replace('%description%', transaction.description);
+            html = html.replace('%amount%', transaction.amount);
+
+            // Insert the HTML into the DOM
+            document.querySelector(container).insertAdjacentHTML('beforeend', html);
         },
 
         getDOMstrings: function() {
@@ -87,8 +136,10 @@ var theController = (function(model, view) {
         theView.clearInput();
 
         // Add the item to the model
+        var newTransaction = theModel.addTransaction(input.type, input.description, input.amount);
 
         // Add a new item to the UI
+        theView.addListTransaction(newTransaction, input.type);
 
         // Calculate the budget
 
