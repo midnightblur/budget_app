@@ -78,8 +78,15 @@ var theView = (function() {
         },
 
         clearInput: function() {
-            document.querySelector(DOMstrings.inputDesc).value = '';
-            document.querySelector(DOMstrings.intputValue).value = '';
+            // Clear fields
+            var clearedFields = document.querySelectorAll(DOMstrings.inputDesc + ', ' + DOMstrings.intputValue); // return a list, not an array
+            clearedFields = Array.prototype.slice.call(clearedFields); // convert a list to an array
+            clearedFields.forEach(function(current, index, array) {
+                current.value = '';
+            });
+
+            // Reset focus
+            clearedFields[0].focus();
         },
 
         addListTransaction: function(transaction, type) {
@@ -133,6 +140,8 @@ var theController = (function(model, view) {
     var ctrlAddItem = function() {
         // Get the input data
         var input = theView.getInput();
+
+        // Clear all input fields
         theView.clearInput();
 
         // Add the item to the model
