@@ -162,6 +162,12 @@ var theView = (function() {
         return (sign + ' ' + int + '.' + dec);
     };
 
+    var nodeListForEach = function(nodeList, fn) {
+        for (var i = 0; i < nodeList.length; i++) {
+            fn(nodeList[i], i);
+        }
+    };
+
     return {
         getInput: function() {
             return {
@@ -215,12 +221,6 @@ var theView = (function() {
 
         displayPercentages: function(percentages) {
             var fields = document.querySelectorAll(DOMstrings.expensePercentageLabel);
-            
-            var nodeListForEach = function(nodeList, fn) {
-                for (var i = 0; i < nodeList.length; i++) {
-                    fn(nodeList[i], i);
-                }
-            }
 
             nodeListForEach(fields, function(current, index) {
                 current.textContent = (percentages[index] === 0) ? '---' : percentages[index] + '%';
@@ -245,6 +245,19 @@ var theView = (function() {
             document.querySelector(DOMstrings.monthLabel).textContent = month + ' ' + now.getFullYear();
         },
 
+        changeType: function() {
+            var fields = document.querySelectorAll(
+                DOMstrings.inputType + ', ' +
+                DOMstrings.inputDesc + ', ' +
+                DOMstrings.intputValue);
+
+            nodeListForEach(fields, function(current) {
+                current.classList.toggle('red-focus');
+            });
+
+            document.querySelector(DOMstrings.inputBtn).classList.toggle('red');
+        },
+
         getDOMstrings: function() {
             return DOMstrings;
         },
@@ -266,6 +279,8 @@ var theController = (function(model, view) {
 
         // Setup event delegation for deleting transactions
         document.querySelector(DOMstrings.container).addEventListener('click', ctrlDeleteItem);
+
+        document.querySelector(DOMstrings.inputType).addEventListener('change', theView.changeType);
     };
 
     var updatePercentages = function() {
